@@ -1,0 +1,89 @@
+body{
+    /* margin: 0px; */
+    -webkit-font-smoothing: antialiased;
+}
+.group {
+    width: 49%;
+    display: inline-block;
+    vertical-align: top;
+    /* border: solid #edf342 1px; */
+}
+
+.node, label{
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    font-size: 0.6rem;
+    line-height: 0.9rem;
+}
+.node, .left, .right, .name, .la { display: inline-block; vertical-align: top; }
+
+.container .la div, .right .mount {
+    display:-webkit-flex;
+    flex-direction:row;
+    justify-content:flex-end;
+}
+
+.name, .left { width: 40% }
+.container .la, .right { width: 60% }
+
+.expanded  { display: none; }
+#expand:checked ~ .group-container .expanded { display: inline-block; }
+
+.app, .db, .mem {
+    display:-webkit-flex;
+    flex-direction:row;
+    justify-content:space-between;
+}
+
+.node {
+    background-color: #fff;
+    width: 10rem;
+    border: solid #edf3f2 0.1rem;
+    margin: 0.1rem;
+}
+.node.unavailable { background-color: #fee; }
+span, .label { padding-left: 0.2rem; padding-right: 0.2rem; color: #666; }
+.cpu.warn span { color: #74DF00; }
+.la.warn span { color: #DF3A01; }
+.app.warn span { color: #00BFFF; }
+.socket.warn span { color: #9A2EFE; }
+.mount.warn span { color: #B404AE; }
+.db.warn span { color: #ff8075; }
+.mem.warn span { color: #FF00B8; }
+
+.container { padding-left: 0.15rem; padding-right: 0.15rem; }
+
+.warn-smart {
+    margin-bottom: 0.12rem;
+    border-bottom: 1px #fcfcfc solid;
+}
+.warn-smart > div {
+    border-top: 0.2rem transparent solid;
+    width: 14.28571%;
+    display: inline-block;
+}
+
+.warn-smart .cpu.warn { border-color: #74DF00; }
+.warn-smart .la.warn { border-color: #DF3A01; }
+.warn-smart .app.warn { border-color: #00BFFF; }
+.warn-smart .socket.warn { border-color: #9A2EFE; }
+.warn-smart .mount.warn { border-color: #B404AE; }
+.warn-smart .db.warn { border-color: #ff8075; }
+.warn-smart .mem.warn { border-color: #FF00B8; }
+
+.minor { color:#bbb; padding: 0px; padding-left: 0.1rem;}
+
+#viewbox {
+    background-color: rgba(255,0,0,0.7);
+    z-index: 2;
+    position: fixed;
+    top: 0px; bottom: 0px; left: 0px; right: 0px;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    display: flex;
+    }
+#viewbox.hidden { display: none; }
+
+#cmds:not(:checked) ~ .group-container .technical, #cmds:not(:checked) ~ .technical {
+    display: none;
+}

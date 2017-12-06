@@ -1,45 +1,58 @@
+<!DOCTYPE html5>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <link rel='stylesheet' type="text/css" href='/monitor.css'>
         <title>Monitor</title>
-        <style type="text/css">
-            .node-title {
-                padding: 6px 0px 4px 0px;
-                font-family: Arial;
-                color: #666;
-                font-size: large;
-                text-align: center;
-            }
-
-            svg { padding: 4px; }
-            svg > circle { fill: none; }
-            svg > circle.background { stroke: #eee; stroke-width: 2; }
-            svg > circle.progress { stroke-width: 4; }
-            .text-svg { font-family: monospace; font-size: 16; fill: #444 }
-            .text-primary { font-family: Helvetica; font-size: 14; color: #666 }
-            .text-secondary { font-family: Helvetica; font-size: 12; color: #888 }
-
-            
-            .parameter div:nth-child(2) { padding-left: 10px; }
-            .parameter span { display: block; }
-            
-            .node {
-                display:-webkit-flex;
-                -webkit-flex-wrap:wrap;
-            }
-            .node-title, .parameter, .void-parameter {
-                background-color: #fbfdfc;
-                margin: 1px;
-                display:-webkit-flex;
-                -webkit-flex: 1;
-                flex: 1;
-                -webkit-align-items:center;
-            }
-            
-        </style>
     </head>
     <body>
-        <div id="node-list"></div>
+        <label for="expand">
+            <input id="expand" name="expand" type="checkbox">
+            More info
+            <input id="cmds" name="cmds" type="checkbox"><label for='cmds'>Technical</label></input>
+            <a class='technical' href="javascript:void();" onclick="action_stop_all_nodes();" id='button-stop-all'>Stop All Agents</a>
+            <div class="group-container">
+                <div id="unknown" class="group"></div>
+            </div>
+            <div><b>Site-1</b></div>
+            <div class="group-container">
+                <div>Cluster-1</div>
+                <div id="g8" class="group"></div>
+            </div>
+            <div class="group-container">
+                <div>Cluster-2</div>
+                <div id="g2" class="group"></div>
+            </div>
+            <div class="group-container">
+                <div>Cluster-3</div>
+                <div id="g1" class="group"></div>
+            </div>
+            <div class="group-container">
+                <div>Cluster-4</div>
+                <div id="g3" class="group"></div>
+            </div>
+            <div class="group-container">
+                <div>Cluster-5</div>
+                <div id="g5" class="group"></div>
+            </div>
+            <div class="group-container">
+                <div>Cluster-6</div>
+                <div id="g4" class="group"></div>
+            </div>
+            <div class="group-container">
+                <div>Cluster-7</div>
+                <div id="g6" class="group"></div>
+            </div>
+            <div class="group-container">
+                <div>Cluster-8</div>
+                <div id="g7" class="group"></div>
+            </div>
+            <div class="group-container">
+                <div>Cluster-9</div>
+                <div id="g9" class="group"></div>
+            </div>
+        <label>
+        <div id='viewbox' class='hidden'></div>
         <script src='/monitor.js'></script>
         <script>init();</script>
     </body>
