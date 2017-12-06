@@ -1,6 +1,8 @@
 var stop = false;
 var timeout = 5000;
 var last_values = {};
+var json_url = "http://localhost:8001/statistics";
+var format_columns = 7;
 
 function init() {
     setTimeout(function loop() {
@@ -21,15 +23,13 @@ function replaceTag(tag) { return tagsToReplace[tag] || tag; };
 function safe_tags_replace(str) { return str.replace(/[&<>]/g, replaceTag); };
 
 function get_statistics() {
-    // var url="http://aer3:8000/statistics";
-    var url="http://localhost:8001/statistics";
     var xhr = new XMLHttpRequest();
-    xhr.open('get', url, true);
+    xhr.open('get', json_url, true);
     xhr.responseType = 'json';
     xhr.onload = function() {
         var status = xhr.status;
         if (status == 200) {
-            debugger;
+            // debugger;
             var json = (typeof xhr.response == 'string') ? JSON.parse(xhr.response) : xhr.response; // IE 11 Fix
             if(json.error === undefined) {
                 parse_statistic(json);
@@ -37,7 +37,7 @@ function get_statistics() {
             else { console.log("json error: " + json.error); }
         }
         else {
-            console.log("Unable load resource: " + url);
+            console.log("Unable load resource: " + json_url);
         }
     };
     xhr.send();
@@ -62,8 +62,13 @@ function create_id(node,param_id) {
 };
 
 function render_node(node) {
-    if(node.status != "OK") { return '<div class="node"><div class="node-name"><span>' + node.node + ": " + node.status + '</span></div></div>'; };
+    // if(node.status != "OK") {
+    //     return '<div class="node"><div class="node-name"><span>' +
+    //         node.node + ": " + node.status +
+    //         '</span></div></div>'; };
     var parameters = '';
+    var void_p_count = format_columns - 1;
+    
     switch (node.code) {
         case undefined:
             parameters += render_parameter(node,"response","","Not Defined","");
@@ -72,30 +77,46 @@ function render_node(node) {
             parameters += render_parameter(node,"response",(node.time * 1000).toFixed(2),node.code,safe_tags_replace(node.data)+"…");
             break;
         default:
-            parameters += render_parameter(node,"response",(node.time * 1000).toFixed(2),node.code,node.desc);
+            parameters += render_parameter(node,"response",(node.time * 1000).toFixed(2),node.code,node.data);
             break;
         }
-    parameters += render_parameter(node,"cpu",node.cpu,"CPU","Ut, 5s");
+    if(node.status === "OK") {
+        parameters += render_parameter(node,"cpu",node.cpu,"CPU","Ut, 5s");
     
-    parameters += render_parameter(node,"la-1",node.loadavg[0],"1 min","LA");
-    parameters += render_parameter(node,"la-2",node.loadavg[1],"5 min","LA");
-    parameters += render_parameter(node,"la-3",node.loadavg[2],"15 min","LA");
-    for (mount of node.mounts) {
-        if(mount.status === "OK") {
-            parameters += render_parameter(node,mount.mount,mount.perc_formatted + "%",mount.mount,(mount.mnt_size/1073741824.0).toFixed(2) + " GB");
-        } else {
-            parameters += render_parameter(node,mount.mount,"N/A",mount.mount,"Unknown");
+        parameters += render_parameter(node,"la-1",node.loadavg[0],"1 min","LA");
+        parameters += render_parameter(node,"la-2",node.loadavg[1],"5 min","LA");
+        parameters += render_parameter(node,"la-3",node.loadavg[2],"15 min","LA");
+        
+        void_p_count -= 4;
+        
+        for (mount of node.mounts) {
+            void_p_count--;
+            if(mount.status === "OK") {
+                parameters += render_parameter(node,mount.mount,mount.perc_formatted + "%",
+                    mount.mount,(mount.mnt_size/1073741824.0).toFixed(2) + " GB");
+            } else {
+                parameters += render_parameter(node,mount.mount,"N/A",mount.mount,"Unknown");
+            }
+        }
+        for (port of node.ports) {
+            void_p_count--;
+            port_id="port-"+port.port;
+            if(port.is_used === true) {
+                parameters += render_parameter(node,port_id,port.port,"Used","Socket");
+            } else {
+                parameters += render_parameter(node,port_id,port.port,"Unused","Socket");
+            }
         }
     }
-    for (port of node.ports) {
-        port_id="port-"+port.port;
-        if(port.is_used === true) {
-            parameters += render_parameter(node,port_id,port.port,"Used","Socket");
-        } else {
-            parameters += render_parameter(node,port_id,port.port,"Unused","Socket");
-        }
+    void_parameters = "";
+    for(; void_p_count > 0; void_p_count--) {
+        void_parameters += '<div class="void-parameter"></div>';
     }
-    return '<div class="node"><div class="node-name"><span>' + node.node + '</span></div><div class="parameter-list">' + parameters + '</div></div>';
+    return '<div class="node">' + render_node_title(node) + parameters + void_parameters +'</div>';
+};
+
+function render_node_title(node) {
+    return '<div class="node-title"><span>' + node.node + '</span></div>';
 };
 
 function render_parameter(node,param_id,value,volume,free) {
@@ -139,7 +160,7 @@ function actions(node) {
             else { a(create_id(node,mount.mount),100.0); }
         }
         for (port of node.ports) {
-            debugger;
+            //debugger;
             port_id=create_id(node,"port-"+port.port);
             if(port.is_used === true) { a(port_id,0.0); }
             else { a(port_id,100.0); }
@@ -148,15 +169,19 @@ function actions(node) {
 };
 
 function a(id, percent) {
-    percent = percent > 100 ? 100 : percent;
+    percent = percent < 0 ? 0 : percent > 100 ? 100 : percent;
     //percent = Math.random() * 99
     // math trick 2*pi*57 = 358, must be less than 360 degree 
     var circle = document.getElementById("svg-" + id + "-circle");
     // var myTimer = document.getElementById('myTimer');
     // debugger
-    var interval = 10;
-    var angle = last_values[id] || 0;
-    var angle_increment = 10;
+    var time_interval = 10;
+    var angle = 0;
+    var angle_increment = 1;
+    if (last_values[id] !== undefined) {
+        angle = last_values[id].angle;
+        angle_increment = last_values[id].percent > percent ? -angle_increment : angle_increment;
+    }
     //console.log(percent,circle);
     var max = 189;
     var value = percent / 100.0 * max; // in grad
@@ -175,14 +200,19 @@ function a(id, percent) {
                 ((B.length < 2) ? "0" + B : B));
             // myTimer.innerHTML = parseInt(angle/360*100) + '%';
 
-            if (angle >= value) {
-                last_values[id] = angle;
+            if ((angle >= value && angle_increment > 0) || ( angle <= value && angle_increment < 0 )) {
+                var lv = {};
+                lv.angle = angle;
+                lv.percent = percent;
+                last_values[id] = lv;
                 // debugger;
                 window.clearInterval(timer);
             }
             angle += angle_increment;
-            if(angle > value) { angle=value; };
-        }.bind(this), interval);
+            if((angle > value && angle_increment > 0) || ( angle < value && angle_increment < 0 )) {
+                angle=value;
+            }
+        }.bind(this), time_interval);
     }
 };
 

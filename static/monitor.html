@@ -3,15 +3,15 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <title>Monitor</title>
         <style type="text/css">
-            .node-name {
-                padding: 6px 0px 4px 16px;
+            .node-title {
+                padding: 6px 0px 4px 0px;
                 font-family: Arial;
                 color: #666;
                 font-size: large;
+                text-align: center;
             }
 
             svg { padding: 4px; }
-
             svg > circle { fill: none; }
             svg > circle.background { stroke: #eee; stroke-width: 2; }
             svg > circle.progress { stroke-width: 4; }
@@ -23,13 +23,16 @@
             .parameter div:nth-child(2) { padding-left: 10px; }
             .parameter span { display: block; }
             
-            .parameter-list {
+            .node {
                 display:-webkit-flex;
                 -webkit-flex-wrap:wrap;
             }
-            .parameter {
-                padding-left: 10px;
+            .node-title, .parameter, .void-parameter {
+                background-color: #fbfdfc;
+                margin: 1px;
                 display:-webkit-flex;
+                -webkit-flex: 1;
+                flex: 1;
                 -webkit-align-items:center;
             }
             
@@ -37,7 +40,7 @@
     </head>
     <body>
         <div id="node-list"></div>
-        <script src='monitor.js'></script>
+        <script src='/monitor.js'></script>
         <script>init();</script>
     </body>
 </html>

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-# https://github.com/m-2k/py-mon
+# Martemyanov Andrey
 
 import os
+import sys
 import posixpath
 import urllib
 import urllib2
@@ -23,6 +24,7 @@ from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 
 HTTP_PORT = 8001
 LOCALHOST_DEVELOPING = True
+SERVE_STATIC = True
 
 PATH_ROOT = curdir + sep
 PATH_STATIC = PATH_ROOT + 'static' + sep
@@ -36,11 +38,10 @@ URL_STATISTICS = '/statistics'
 URL_NODE_STATISTICS = '/node-statistics'
 
 NODES=[
-    ('localhost','Localhost',['/','/home'],[80,8000],"http://localhost:8000/en/","Erlang")
-    # ('aer2','A2',['/','/boot','/home','/opt/bbap','/mnt','/opt/filer'],"http://aer2:8983/solr/","SOLR"),
-    # ('aer3','A3',['/','/boot','/home2','/opt/bbap','/mnt','/opt/filer'],None,None),
-    # ('aer6','A6',['/','/boot','/home','/opt/bbap','/mnt','/opt/filer'],"http://aer6:9080/portalserver/static/healthCheck.jsp","JSP"),
-    # ('aer15','A15',['/','/boot','/home','/var/cache/nginx','/opt/nginx','/opt/bbap','/mnt','/opt/filer'],"http://aer15:8880/ngnx_sts","Nginx")
+    ('localhost','lo',['/'],[8000],"http://localhost:8000/en","Erlang"),
+    ('aer15','aer15',['/opt/bbap','/opt'],[80,8880],"http://aer15/portalserver/static/sb-bundle/images/main-logo.png","Nginx")
+    # ('aer14','aer15',['/opt/bbap','/opt'],[80,8880],"http://aer15/portalserver/static/sb-bundle/images/main-logo.png","Nginx"),
+    # ('aer15','aer15',['/opt/bbap','/opt'],[81,8880],"http://aer15/portalserver/static/sb-bundle/images/main-logo.png1","Nginx")
 ]
 
 class MyHandler(BaseHTTPRequestHandler):
@@ -90,7 +91,7 @@ class MyHandler(BaseHTTPRequestHandler):
             return (e.code,0,"")
         except urllib2.URLError as e:
             print "[ERR] URLError: %s %s " % (e.reason.errno,e.reason.strerror)
-            return (e.reason.errno,0,"")
+            return (e.reason.errno,0,e.reason.strerror)
     def socket_available(self,port):
         s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         r=s.connect_ex(('127.0.0.1',port))
@@ -103,7 +104,12 @@ class MyHandler(BaseHTTPRequestHandler):
         return scope
     def health_check(self,url):
         (code,time,data)=self.resource_available(url)
-        return (code,time,data.replace("\n", "").replace("\r", "").replace("\t", "")[:16])
+        
+        data=data.replace("\n", "").replace("\r", "").replace("\t", "")[:16] if code == 200 else data
+        
+        print "health_check: %s %s %s" % (code,time,data)
+        return (code,time,data)
+        # return (code,time,"")
     def local_statistics(self, node):
         
         # try:
@@ -139,7 +145,7 @@ class MyHandler(BaseHTTPRequestHandler):
         # print "ENDSWITH: %s" % path.endswith(".css")
 
         try:
-            if path.endswith(".js"):
+            if path.endswith(".js") and SERVE_STATIC == True:
                 f = open(PATH_STATIC + path)
                 self.send_response(200)
                 self.send_header('Content-type', 'text/css')
@@ -147,7 +153,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.wfile.write(f.read())
                 f.close()
                 return
-            if path.endswith(".html"):
+            if path.endswith(".html") and SERVE_STATIC == True:
                 f = open(PATH_STATIC + path)
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
@@ -215,12 +221,17 @@ def background_collector(mq):
         # with mq.mutex:
         #     mq.queue.clear() # thread-safe clear queue
         
-        p = subprocess.Popen("sar 5 1 |tail -1|awk '{print $2}'", shell=True,stdout=subprocess.PIPE)
+        cmd = {
+            'darwin': "sar 5 1 |tail -1|awk '{print $2}'" # macosx
+        }
+        default_cmd = "sar 5 1 |tail -1|awk '{print $3}'" # linux2
+        
+        p = subprocess.Popen(cmd.get(sys.platform,default_cmd), shell=True,stdout=subprocess.PIPE)
         output, err = p.communicate()
                 
         # mq.put(output.strip())
         last_collector_value = output.strip()
-        time.sleep(5) # float seconds
+        # time.sleep(5) # float seconds
 
 
 
