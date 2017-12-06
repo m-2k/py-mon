@@ -1,0 +1,43 @@
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>Monitor</title>
+        <style type="text/css">
+            .node-name {
+                padding: 6px 0px 4px 16px;
+                font-family: Arial;
+                color: #666;
+                font-size: large;
+            }
+
+            svg { padding: 4px; }
+
+            svg > circle { fill: none; }
+            svg > circle.background { stroke: #eee; stroke-width: 2; }
+            svg > circle.progress { stroke-width: 4; }
+            .text-svg { font-family: monospace; font-size: 16; fill: #444 }
+            .text-primary { font-family: Helvetica; font-size: 14; color: #666 }
+            .text-secondary { font-family: Helvetica; font-size: 12; color: #888 }
+
+            
+            .parameter div:nth-child(2) { padding-left: 10px; }
+            .parameter span { display: block; }
+            
+            .parameter-list {
+                display:-webkit-flex;
+                -webkit-flex-wrap:wrap;
+            }
+            .parameter {
+                padding-left: 10px;
+                display:-webkit-flex;
+                -webkit-align-items:center;
+            }
+            
+        </style>
+    </head>
+    <body>
+        <div id="node-list"></div>
+        <script src='monitor.js'></script>
+        <script>init();</script>
+    </body>
+</html>
